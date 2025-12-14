@@ -2,6 +2,12 @@ import threading
 import queue
 from dataclasses import dataclass
 
+#to do:
+
+#add different scheduling policies, like add a priority or something, make it configurable with round robin implementation here
+#add more structed logging methods
+#allow workers to be able to execute variable amounts of work
+
 @dataclass
 class Task:
     id: int
