@@ -1,17 +1,18 @@
 import threading
 import queue
 from dataclasses import dataclass
+from typing import List
 
 #to do:
-
-#add different scheduling policies, like add a priority or something, make it configurable with round robin implementation here
 #add more structed logging methods
 #allow workers to be able to execute variable amounts of work
 
 @dataclass
+#with priority: lower number means higher priority
 class Task:
     id: int
     remaining: int
+    priority: int = 0
 
 
 class Worker(threading.Thread):
@@ -32,12 +33,23 @@ class Worker(threading.Thread):
 
 
 class Scheduler:
-    def __init__(self, tasks, workers=2, quantum=1):
+    def __init__(self, tasks: List[Task], workers=2, quantum=1, policy="round_robin"):
         self.tasks = tasks
         self.quantum = quantum
+        self.policy = policy
         self.cmd_q = queue.Queue()
         self.res_q = queue.Queue()
         self.workers = [Worker(i, self.cmd_q, self.res_q) for i in range(workers)]
+
+    def _select_task(self):
+        active = [t for t in self.tasks if t.remaining > 0]
+        if not active:
+            return None
+
+        if self.policy == "priority":
+            return sorted(active, key=lambda t: (t.priority, t.id))[0]
+
+        return active[0]
 
     def run(self):
         for worker in self.workers:
@@ -51,11 +63,21 @@ class Scheduler:
                     self.cmd_q.put((task, self.quantum))
                     tid, done, wid = self.res_q.get()
                     task.remaining -= done
-                    print(f"tick {tick}: worker {wid} ran task {tid}, remaining={task.remaining}")
+
+                    print(
+                        f"tick {tick}: worker {wid} ran task {tid} "
+                        f"(priority={task.priority}), remaining={task.remaining}"
+                    )
 
         for _ in self.workers:
             self.cmd_q.put((None, 0))
 
+
 if __name__ == "__main__":
-    tasks = [Task(i + 1, 3) for i in range(5)]
-    Scheduler(tasks).run()
+    tasks = [
+        Task(id=1, remaining=5, priority=2),
+        Task(id=2, remaining=4, priority=0),
+        Task(id=3, remaining=3, priority=1),
+    ]
+
+    Scheduler(tasks, policy="priority").run() #leave string empty for round-robin
