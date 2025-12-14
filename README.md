@@ -1,5 +1,5 @@
 # Concurrency Simulator
-This project simulates an OS-style concurrent task scheduler that assigns tasks to worker threads that simulate CPU cores. The *simple-pilot* branch holds my first iteration of a scheduler, trial and erroring a simple concept to help me develop a foundation to build a more sophisticated model. The main branch holds my most recent additions and iterations of this concurrency model.
+This project simulates an OS-style concurrent task scheduler that assigns tasks to worker threads that simulate CPU cores. The *simple-pilot* branch holds my first iteration of a scheduler, trial and erroring a simple concept to help me develop a foundation to build a more sophisticated model. The *main* branch holds my most recent additions and iterations of this concurrency model.
 
 ## Main concurrency simulator (current as of December 14 2025)
 Added a priority policy to the simulation. Add the string *"priority"* to the policy input in main to use priority policy, otherwise the model defaults to round robin. Currently, every other function is identical to the pilot.
