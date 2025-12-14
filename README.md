@@ -6,3 +6,5 @@ Added a priority policy to the simulation. Add the string *"priority"* to the po
 
 ## Pilot concurrency simulator
 This project simulates a minimal round-robin scheduler. The central scheduler iteratively assigns tasks that have remaining work to worker threads with fixed-size time slices. These worker threads independently execute the assigned work, mark it as done and report back to the scheduler. This simulates a concurrent scheduling loop with low complexity, and demonstrates task selection, time slicing, execution and state updates.
+
+[View the pilot concurrency simulator](https://github.com/yanedwar/concurrency-simulator/tree/simple-pilot)
