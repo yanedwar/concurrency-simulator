@@ -58,6 +58,7 @@ class Scheduler:
         tick = 0
         while any(task.remaining > 0 for task in self.tasks):
             for task in self.tasks:
+                task = self._select_task()
                 if task.remaining > 0:
                     tick += 1
                     self.cmd_q.put((task, self.quantum))
