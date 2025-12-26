@@ -1,11 +1,8 @@
 import threading
 import queue
+import random
 from dataclasses import dataclass
 from typing import List
-
-#to do:
-#add more structed logging methods
-#allow workers to be able to execute variable amounts of work
 
 @dataclass
 #with priority: lower number means higher priority
@@ -21,13 +18,16 @@ class Worker(threading.Thread):
         self.worker_id = wid
         self.cmd_q = cmd_q
         self.res_q = res_q
+        self.speed = 1 + (random.random() - 0.5) * 0.4 #baseline CPU speed [0.8, 1.2]
 
     def run(self):
         while True:
-            task, units = self.cmd_q.get()
+            task, quantum = self.cmd_q.get()
             if task is None:
                 break
-            executed = min(units, task.remaining)
+            exec_noise = 1 + (random.random() - 0.5) * 0.2 #variable execution noise [0.9, 1.1]
+            executed = min(quantum * self.speed * exec_noise, task.remaining)
+            print(f"exectued: {executed}")
             self.res_q.put((task.id, executed, self.worker_id))
             self.cmd_q.task_done()
 
@@ -54,21 +54,21 @@ class Scheduler:
     def run(self):
         for worker in self.workers:
             worker.start()
+            print(f"worker {worker.worker_id} speed: {worker.speed}")
 
         tick = 0
-        while any(task.remaining > 0 for task in self.tasks):
-            for task in self.tasks:
-                task = self._select_task()
-                if task.remaining > 0:
-                    tick += 1
-                    self.cmd_q.put((task, self.quantum))
-                    tid, done, wid = self.res_q.get()
-                    task.remaining -= done
+        while any(task.remaining > 0 and task is not None for task in self.tasks):
+            task = self._select_task()
+            if task.remaining > 0 and task is not None:
+                tick += 1
+                self.cmd_q.put((task, self.quantum))
+                tid, done, wid = self.res_q.get()
+                task.remaining -= done
 
-                    print(
-                        f"tick {tick}: worker {wid} ran task {tid} "
-                        f"(priority={task.priority}), remaining={task.remaining}"
-                    )
+                print(
+                    f"tick {tick}: worker {wid} ran task {tid} "
+                    f"(priority={task.priority}), remaining={task.remaining}"
+                )
 
         for _ in self.workers:
             self.cmd_q.put((None, 0))
